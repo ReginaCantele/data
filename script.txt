@@ -1,0 +1,81 @@
+LOAD CSV WITH HEADERS FROM "file:/id_clientes.csv" AS row
+MERGE (:Cliente {numero: row.numero})
+
+LOAD CSV WITH HEADERS FROM "file:/plataformas.csv" AS row
+MERGE (:Plataformas {nome: row.nome})
+
+LOAD CSV WITH HEADERS FROM "file:/merge01.csv" AS row
+MATCH (cli:Cliente {numero: row.numero})
+MATCH (pla:Plataformas {nome: row.nome})
+MERGE (cli)-[:tem]->(pla)
+
+
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/ReginaCantele/data/main/plataformas.csv"
+  AS row
+  MERGE (:Plataformas {nome: row.nome})
+
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/ReginaCantele/data/main/id_clientes.csv" AS row
+MERGE (:Cliente {numero: row.numero})
+
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/ReginaCantele/data/main/merge01.csv" AS row
+MATCH (cli:Cliente {numero: row.numero})
+MATCH (pla:Plataformas {nome: row.nome})
+MERGE (cli)-[:tem]->(pla)
+
+
+MATCH (c:Cliente)-[:tem]->(p:Plataformas) 
+RETURN c.numero, count(p) AS contratos 
+ORDER BY contratos DESC
+
+Produtos mais populares
+MATCH (p:Plataformas) <-[:tem]-(c:Cliente)
+RETURN p.nome, count(p) AS contratos 
+ORDER BY contratos DESC 
+
+MATCH (cli51:Cliente {numero: '51'})-[r:tem]->(plat:Plataformas)
+RETURN cli51, r, plat
+
+MATCH (plat:Plataformas{nome:"Netflix"})<-[:tem]-(cli:Cliente)
+RETURN cli
+
+MATCH p=shortestPath(
+  (netflix:Plataformas {nome:"Deezer"})-[*]-(cli51:Cliente {numero:"51"})
+)
+RETURN p
+
+MATCH ({ numero: '51' })-[:tem]->(plataformas)<-[:tem]-(cliente)
+RETURN plataformas.nome, count(cliente)
+ORDER BY count(cliente) DESC
+
+MATCH ({ numero: '51' })-[:tem]->(plataformas)<-[:tem]-(cliente)
+RETURN cliente.numero, count(plataformas)
+ORDER BY count(plataformas) DESC
+
+MATCH ({ numero: '51' })-[:tem]->(plataformas)<-[:tem]-(cliente)
+RETURN cliente.numero, plataformas.nome
+order by cliente.numero
+
+MATCH (m:Plataformas {nome: "Netflix"})<-[:tem]-(u:Cliente)-[:tem]->(rec:Plataformas)
+RETURN rec.nome AS recommendation, COUNT(*) AS Clientecontratoutb
+ORDER BY Clientecontratoutb DESC LIMIT 25
+
+MATCH (cli2:Cliente)-[:tem]->(p2:Plataformas) where cli2.numero = '155'
+MATCH (cli1:Cliente)-[:tem]->(p1:Plataformas)
+where (cli1.numero = '51') and (p1.nome <> p2.nome)
+RETURN cli2.numero, p1.nome
+
+
+MATCH (u:Cliente {numero: "51"})-[:tem]->(:Plataformas)<-[:tem]-(o:Cliente)
+MATCH (o)-[:tem]->(rec:Plataformas) 
+WHERE NOT EXISTS( (u)-[:tem]->(rec) )
+RETURN rec.nome, count(rec.nome) 
+ORDER BY count(rec.nome) DESC
+
+MATCH (u:Cliente {numero: "155"})-[:tem]->(:Plataformas)<-[:tem]-(o:Cliente)
+MATCH (o:Cliente  {numero: "51"})-[:tem]->(rec:Plataformas) 
+WHERE NOT EXISTS( (u)-[:tem]->(rec) )
+RETURN rec.nome, count(rec.nome) 
+ORDER BY count(rec.nome) DESC
+
+
+
